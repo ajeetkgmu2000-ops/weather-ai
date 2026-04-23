@@ -12,7 +12,9 @@ API_KEY = "f5dd45d9aa867344625dc8024cbe269a"
 @app.route("/")
 def home():
     return '''
-        <h1>🌦️ Weather AI</h1>
+    <h1 style="text-align:center; font-size:42px;">
+        🌦️ Weather AI
+    </h1>
         <form action="/weather">
             <input type="text" name="city" placeholder="Enter city" required>
             <button type="submit">Get Weather</button>
@@ -51,7 +53,7 @@ def weather():
     aqi_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={API_KEY}"
     aqi_data = requests.get(aqi_url).json()
 
-    aqi = "N/A"
+    aqi = 1
     if "list" in aqi_data:
        aqi = aqi_data["list"][0]["main"]["aqi"]
 
@@ -76,9 +78,25 @@ def weather():
     air_quality = aqi_text(aqi)
 
     return f"""
+    <html>
+<head>
+    <title>Weather AI</title>
+</head>
+
+<body style="font-family:Arial; background:#f2f6ff;">
+
+    <div style="
+        width:400px;
+        margin:50px auto;
+        background:white;
+        padding:25px;
+        border-radius:15px;
+        box-shadow:0 8px 20px rgba(0,0,0,0.1);
+        text-align:center;
+    ">
         <h2>🌍 Weather in {city.title()}</h2>
 
-        p>🌡️ Temperature: {temp} °C</p>
+        <p>🌡️ Temperature: {temp} °C</p>
         <p>🌤️ Condition: {condition}</p>
         <p>🌬️ Wind Speed: {windspeed} m/s</p>
         <p>💧 Humidity: {humidity}%</p>
@@ -96,6 +114,10 @@ def weather():
 
         <br>
         <a href="/">🔙 Back</a>
+
+    </div>
+</body>
+</html>
     """
 
 # ---------------- AI FUNCTION ----------------
