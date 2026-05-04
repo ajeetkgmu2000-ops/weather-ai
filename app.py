@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 model = joblib.load("weather_model.pkl")
 
-API_KEY = "f5dd45d9aa867344625dc8024cbe269a"
+API_KEY = "f5dd45d9aa867344625dc8024cbe269a"  
 
 
 # ---------------- HOME PAGE ----------------
@@ -130,9 +130,6 @@ def weather():
      risk = max(risk, 1)
 
     print("DEBUG → AQI:", aqi_val, "UV:", uv_val, "TEMP:", temp_val, "ML:", ml_risk, "FINAL:", risk)
-     
-    
-
     
 
     risk_text = {
@@ -146,40 +143,124 @@ def weather():
     advice = weather_advice(temp, condition, humidity, windspeed, uv_index, aqi)
     air_quality = aqi_text(aqi)
 
+
+    # -------- COLOR LOGIC --------
+    if risk == 0:
+     risk_color = "#4CAF50"
+    elif risk == 1:
+     risk_color = "#FFC107"
+    elif risk == 2:
+     risk_color = "#FF9800"
+    else:
+     risk_color = "#F44336"
+
+    if aqi_val <= 2:
+     aqi_color = "#4CAF50"
+    elif aqi_val == 3:
+     aqi_color = "#FF9800"
+    else:
+     aqi_color = "#F44336"
+
+    if uv_val < 3:
+     uv_color = "#4CAF50"
+    elif uv_val < 7:
+     uv_color = "#FFC107"
+    else:
+     uv_color = "#9C27B0"
+
     # -------- HTML --------
     return f"""
-    <html>
-    <head>
-        <title>Weather AI</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="font-family:Arial; background:#f2f6ff; text-align:center;">
+<html>
+<head>
+    <title>Weather AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
 
-        <h1>🌦️ Weather AI</h1>
+<body style="
+    font-family:Arial;
+    margin:0;
+    padding:0;
+    background: linear-gradient(135deg, #74ebd5, #9face6);
+    text-align:center;
+">
 
-        <div style="background:white; padding:20px; border-radius:10px; width:90%; max-width:400px; margin:auto;">
-            <h2>🌍 {city.title()}</h2>
+<h1 style="padding:20px;">🌦️ Weather AI</h1>
 
 
-              🌡️ Temperature: {temp} °C <br>
-              🌤️ Condition: {condition} <br>
-              🌬️ Wind Speed: {windspeed} m/s <br>
-              💧 Humidity: {humidity}% <br>
-              ☀️ UV Index: {uv_index} <br>
-              🌫️ Air Quality Index: {aqi} - {air_quality} <br><br>
+<div style="
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    width:90%;
+    max-width:420px;
+    margin:auto;
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
+">
 
-              <b>🧠 AI Risk Level: {risk_text} <br><br>
+    <h2>🌍 {city.title()}</h2>
 
-              🤖 AI Advice: {advice} 
-               <br><br>
+    <div style="text-align:left; line-height:1.6;">
+         🌡️ Temperature: {temp} °C <br>
+         🌤️ Condition: {condition} <br>
+         🌬️ Wind Speed: {windspeed} m/s <br>
+         💧 Humidity: {humidity}% <br>
+    </div>
 
-              <a href="/">🔙 Back</a>
-            </div>
+    <br>  
 
-    </body>
-    </html>
-    """
+    <!-- UV BLOCK -->
+    <div style="
+        background:{uv_color};
+        color:white;
+        padding:10px;
+        border-radius:10px;
+        margin-bottom:10px;
+    ">
+        ☀️ UV Index: {uv_index}
+    </div>
 
+    <!-- AQI BLOCK -->
+    <div style="
+        background:{aqi_color};
+        color:white;
+        padding:10px;
+        border-radius:10px;
+        margin-bottom:10px;
+    ">
+        🌫️ AQI: {aqi} - {air_quality}
+    </div>
+
+    <!-- RISK BLOCK -->
+    <div style="
+        background:{risk_color};
+        color:white;
+        padding:12px;
+        border-radius:10px;
+        font-weight:bold;
+        margin-bottom:15px;
+    ">   
+
+        🧠 AI Risk Level: {risk_text} 
+    </div>   
+
+    <!-- ADVICE -->
+    <div style="
+        background:#f5f5f5;
+        padding:10px;
+        border-radius:10px;
+        text-align:left;
+    ">
+        🤖 {advice}
+    </div>
+
+    <br>
+    <a href="/">🔙 Back</a>
+
+  </div>  
+
+  </body>
+  </html>
+  """
 
 # ---------------- AI FUNCTION ----------------
 def weather_advice(temp, condition, humidity, windspeed, uv, aqi):
@@ -231,7 +312,6 @@ def weather_advice(temp, condition, humidity, windspeed, uv, aqi):
 
     return advice
 
-
 # ---------------- AQI TEXT ----------------
 def aqi_text(aqi):
     if aqi == 1:
@@ -247,9 +327,6 @@ def aqi_text(aqi):
     else:
         return "Unknown ❓"
 
-
 # ---------------- RUN APP ----------------
 if __name__ == "__main__":
     app.run(debug=True)
-
-
