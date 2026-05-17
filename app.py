@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 model = joblib.load("weather_model.pkl")
 
-API_KEY = "b140148be18b4d3092f124116261705"  
+API_KEY = "f5dd45d9aa867344625dc8024cbe269a"  
 
 
 # ---------------- HOME PAGE ----------------
@@ -27,14 +27,15 @@ def home():
     '''
 
 
-# ---------------- WEATHER PAGE ----------------
+    # ---------------- WEATHER PAGE ----------------
 @app.route("/weather")
 def weather():
+    print("VERSION: FINAL FIX APPLIED")
+
     city = request.args.get("city")
 
     if not city:
         return "⚠️ Please enter a city"
-
 
     # -------- WEATHER API --------
     url = f"http://api.weatherapi.com/v1/current.json?key={API_KEY}&q={city}&aqi=yes"
@@ -44,6 +45,9 @@ def weather():
      return "❌ API request failed"
 
     data = response.json()
+
+    if str(data.get("cod")) != "200":
+        return f"❌ API Error: {data.get('message')}"
     
     # -------- DATA --------
     temp = data["current"]["temp_c"]
@@ -52,9 +56,8 @@ def weather():
     windspeed = data["current"]["wind_kph"] / 3.6
 
     # -------- UV --------
-    uv_index = data["current"]["uv"]
-    if uv_index is None:
-        uv_index = "Unavailable"
+    uv_index = data["current"].get("uv", "Unavailable")
+
      
     # -------- AQI --------
     aqi = 1
@@ -80,24 +83,18 @@ def weather():
     except:
         uv_val = 0.0
 
+    aqi_val = int(aqi)
+    temp_val = float(temp)
+    humidity_val = float(humidity)
+    wind_val = float(windspeed)
+    
     try:
-        aqi_val = int(aqi) 
-    except:
-        aqi_val = 1
-
-    try:
-        temp_val = float(temp)
-        humidity_val = float(humidity)
-        wind_val = float(windspeed)
-    except:
-        return "❌ invalid weather data"
-    try:
-        ml_risk = model.predict([[temp_val, humidity_val, wind_val, aqi_val, uv_val]])[0]
-        ml_risk = int(ml_risk) 
+        ml_risk = int(model.predict([[temp_val, humidity_val, wind_val, aqi_val, uv_val]])[0])
     except:
         ml_risk = 0
-    
-     # -------- FINAL RISK --------
+
+
+    # -------- FINAL RISK --------
     risk = ml_risk
 
     if aqi_val >= 4:
@@ -115,7 +112,9 @@ def weather():
     if humidity_val < 20 and temp_val > 38:
         risk = max(risk, 1)
 
-    # -------- TEXT --------
+    if aqi_val <= 2 and uv_val < 3 and temp_val < 35:
+        risk = min(risk, 1)
+
     risk_text = {
         0: "🟢 Safe",
         1: "🟡 Mild Risk",
@@ -123,34 +122,34 @@ def weather():
         3: "🔴 Dangerous"
     }.get(risk, "Unknown")
 
-    air_quality = aqi_text(aqi)
+    # -------- AI LOGIC --------
     advice = weather_advice(temp, condition, humidity, windspeed, uv_index, aqi)
-    
-    # -------- COLORS --------
+    air_quality = aqi_text(aqi)
+
+    # -------- COLOR LOGIC --------
+
     if risk == 0:
-        risk_color = "#4CAF50"
+     risk_color = "#4CAF50"
     elif risk == 1:
-        risk_color = "#FFC107"
+     risk_color = "#FFC107"
     elif risk == 2:
-        risk_color = "#FF9800"
+     risk_color = "#FF9800"
     else:
-        risk_color = "#F44336"
+     risk_color = "#F44336"
 
     if aqi_val <= 2:
-        aqi_color = "#4CAF50"
+     aqi_color = "#4CAF50"
     elif aqi_val == 3:
-        aqi_color = "#FF9800"
+     aqi_color = "#FF9800"
     else:
-        aqi_color = "#F44336"
+     aqi_color = "#F44336"
 
     if uv_val < 3:
-        uv_color = "#4CAF50"
+     uv_color = "#4CAF50"
     elif uv_val < 7:
-        uv_color = "#FFC107"
+     uv_color = "#FFC107"
     else:
-        uv_color = "#9C27B0"
-    
-    
+     uv_color = "#9C27B0"
 
     # -------- HTML --------
     return f"""
@@ -169,7 +168,6 @@ def weather():
 ">
 
 <h1 style="padding:20px;">🌦️ Weather AI</h1>
-
 
 <div style="
     background:white;
@@ -222,10 +220,10 @@ def weather():
         border-radius:10px;
         font-weight:bold;
         margin-bottom:15px;
-    ">   
+    ">  
 
-        🧠 AI Risk Level: {risk_text} 
-    </div>   
+        🧠 AI Risk Level: {risk_text}
+    </div>  
 
     <!-- ADVICE -->
     <div style="
@@ -274,14 +272,14 @@ def weather_advice(temp, condition, humidity, windspeed, uv, aqi):
 
     # Wind
     if windspeed > 8:
-        advice += "Strong winds 🌬️ Be careful, "
+        advice += "Strong winds 🌬️, "
 
     # UV
     try:
-     if float(uv) > 7:
-        advice += "High UV ☀️ Use sunscreen, "
+        if uv != "N/A" and float(uv) > 7:
+            advice += "High UV ☀️ Use sunscreen, "
     except:
-     pass
+        pass
 
     # -------- YOUR AQI LOGIC (UNCHANGED) --------
     if aqi != "N/A":
@@ -314,3 +312,6 @@ def aqi_text(aqi):
 # ---------------- RUN APP ----------------
 if __name__ == "__main__":
     app.run(debug=True)
+    
+    
+   
