@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 model = joblib.load("weather_model.pkl")
 
-API_KEY = "f5dd45d9aa867344625dc8024cbe269a"  
+API_KEY = "0683eb7b696f0ecaf5cf589bdf4bf47c"  
 
 
 # ---------------- HOME PAGE ----------------
@@ -38,11 +38,11 @@ def weather():
         return "⚠️ Please enter a city"
 
     # -------- WEATHER API --------
-    url = f"http://api.weatherapi.com/v1/current.json?key={API_KEY}&q={city}&aqi=yes"
+    url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
     response = requests.get(url)
 
     if response.status_code != 200:
-     return "❌ API request failed"
+        return f"❌ API failed: {response.text}"
 
     data = response.json()
 
@@ -50,32 +50,37 @@ def weather():
         return f"❌ API Error: {data.get('message')}"
     
     # -------- DATA --------
-    temp = data["current"]["temp_c"]
-    condition = data["current"]["condition"]["text"]
-    humidity = data["current"]["humidity"]
-    windspeed = data["current"]["wind_kph"] / 3.6
+    temp = data["main"]["temp"]
+    condition = data["weather"][0]["description"]
+    humidity = data["main"]["humidity"]
+    windspeed = data["wind"]["speed"]
+    lat = data["coord"]["lat"]
+    lon = data["coord"]["lon"]
 
     # -------- UV --------
-    uv_index = data["current"].get("uv", "Unavailable")
+    uv_index = "Unavailable"
+    try:
+        uv_url = f"https://api.openweathermap.org/data/2.5/uvi?lat={lat}&lon={lon}&appid={API_KEY}"
+        uv_data = requests.get(uv_url).json()
+
+        if "value" in uv_data:
+            uv_index = uv_data["value"]
+
+    except Exception as e:
+        print("UV ERROR:", e)
 
      
     # -------- AQI --------
     aqi = 1
     try:
-        pm25 = data["current"]["air_quality"]["pm2_5"]
+        aqi_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={API_KEY}"
+        aqi_data = requests.get(aqi_url).json()
 
-        if pm25 <= 12:
-            aqi = 1
-        elif pm25 <= 35:
-            aqi = 2
-        elif pm25 <= 55:
-            aqi = 3
-        elif pm25 <= 150:
-            aqi = 4
-        else:
-            aqi = 5
+        if "list" in aqi_data:
+            aqi = aqi_data["list"][0]["main"]["aqi"]
     except:
-        aqi = 1
+        pass
+
 
     # -------- SAFE ML PREDICTION --------
     try:
@@ -83,10 +88,14 @@ def weather():
     except:
         uv_val = 0.0
 
-    aqi_val = int(aqi)
+    try:
+        aqi_val = int(aqi)
+    except:
+        aqi_val = 1
+
     temp_val = float(temp)
     humidity_val = float(humidity)
-    wind_val = float(windspeed)
+    wind_val = float(windspeed)    
     
     try:
         ml_risk = int(model.predict([[temp_val, humidity_val, wind_val, aqi_val, uv_val]])[0])
@@ -272,7 +281,7 @@ def weather_advice(temp, condition, humidity, windspeed, uv, aqi):
 
     # Wind
     if windspeed > 8:
-        advice += "Strong winds 🌬️, "
+        advice += "Strong winds 🌬️be careful, "
 
     # UV
     try:
@@ -312,6 +321,3 @@ def aqi_text(aqi):
 # ---------------- RUN APP ----------------
 if __name__ == "__main__":
     app.run(debug=True)
-    
-    
-   
