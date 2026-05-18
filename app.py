@@ -11,7 +11,7 @@ model = joblib.load("weather_model.pkl")
 API_KEY = "91ded49b76956e5636275a7090fb3cba"  
 
 
-# ---------------- HOME PAGE -----------
+# ---------------- HOME PAGE ----------------
 @app.route("/")
 def home():
     return '''
@@ -19,8 +19,13 @@ def home():
     <head>
         <title>Weather AI</title>
 
-        <!-- 🔥 THIS IS THE MOST IMPORTANT LINE -->
+        <!-- 📱 Mobile Fix -->
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <!-- 🌍 Icon -->
+        <link rel="icon" href="/static/icon.png" type="image/png">
+        <meta name="theme-color" content="#4CAF50">
+        <link rel="manifest" href="/static/manifest.json">
 
         <style>
             body {
@@ -28,27 +33,35 @@ def home():
                 margin: 0;
                 padding: 0;
                 text-align: center;
+                background: linear-gradient(135deg, #74ebd5, #9face6);
             }
 
             .container {
                 padding: 20px;
             }
 
+            h1 {
+                font-size: 34px;
+                margin-top: 30px;
+            }
+
             input {
-                width: 95%;
-                padding: 16px;
+                width: 100%;
+                max-width: 400px;
+                padding: 18px;
                 font-size: 18px;
-                border-radius: 10px;
+                border-radius: 12px;
                 border: 1px solid #ccc;
                 box-sizing: border-box;
             }
 
             button {
-                width: 95%;
-                padding: 14px;
+                width: 100%;
+                max-width: 400px;
+                padding: 16px;
                 font-size: 18px;
                 border: none;
-                border-radius: 10px;
+                border-radius: 12px;
                 background: #4CAF50;
                 color: white;
             }
@@ -57,7 +70,7 @@ def home():
 
     <body>
 
-        <h1 style="font-size:32px;">🌦️ Weather AI</h1>
+        <h1>🌦️ Weather AI</h1>
 
         <div class="container">
             <form action="/weather">
@@ -74,10 +87,7 @@ def home():
     </body>
     </html>
     '''
-
-    
-
-    # ---------------- WEATHER PAGE ----------------
+# ---------------- WEATHER PAGE ----------------
 @app.route("/weather")
 def weather():
     print("VERSION: FINAL FIX APPLIED")
