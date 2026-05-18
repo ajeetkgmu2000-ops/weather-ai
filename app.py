@@ -8,24 +8,74 @@ app = Flask(__name__)
 
 model = joblib.load("weather_model.pkl")
 
-API_KEY = "0683eb7b696f0ecaf5cf589bdf4bf47c"  
+API_KEY = "91ded49b76956e5636275a7090fb3cba"  
 
 
-# ---------------- HOME PAGE ----------------
+# ---------------- HOME PAGE -----------
 @app.route("/")
 def home():
     return '''
-    <h1 style="text-align:center; font-size:42px;">
-        🌦️ Weather AI
-    </h1>
-    <div style="text-align:center;">
-        <form action="/weather">
-            <input type="text" name="city" placeholder="Enter city" required>
-            <button type="submit">Get Weather</button>
-        </form>
-    </div>
+    <html>
+    <head>
+        <title>Weather AI</title>
+
+        <!-- 🔥 THIS IS THE MOST IMPORTANT LINE -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <style>
+            body {
+                font-family: Arial;
+                margin: 0;
+                padding: 0;
+                text-align: center;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            input {
+                width: 95%;
+                padding: 16px;
+                font-size: 18px;
+                border-radius: 10px;
+                border: 1px solid #ccc;
+                box-sizing: border-box;
+            }
+
+            button {
+                width: 95%;
+                padding: 14px;
+                font-size: 18px;
+                border: none;
+                border-radius: 10px;
+                background: #4CAF50;
+                color: white;
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <h1 style="font-size:32px;">🌦️ Weather AI</h1>
+
+        <div class="container">
+            <form action="/weather">
+
+                <input type="text" name="city" placeholder="Enter city" required>
+
+                <br><br>
+
+                <button type="submit">Get Weather</button>
+
+            </form>
+        </div>
+
+    </body>
+    </html>
     '''
 
+    
 
     # ---------------- WEATHER PAGE ----------------
 @app.route("/weather")
