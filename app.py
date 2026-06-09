@@ -100,15 +100,10 @@ def weather():
     # -------- WEATHER API --------
     url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
     response = requests.get(url)
-
-    if response.status_code != 200:
-        return f"❌ API failed: {response.text}"
-
     data = response.json()
 
     if str(data.get("cod")) != "200":
-        return f"❌ API Error: {data.get('message')}"
-    
+        return "❌ City not found. Please check the spelling and try again."
     # -------- DATA --------
     temp = data["main"]["temp"]
     condition = data["weather"][0]["description"]
